@@ -10,6 +10,7 @@ public enum JIRARequirementsConfiguration {
     JIRA_MAX_THREADS("jira.max.threads"),
 
     JIRA_ROOT_ISSUE_TYPE("jira.root.issue.type"),
+    JIRA_ROOT_ISSUE_ADDITIONAL_JQL("jira.root.issue.additional.jql"),
     JIRA_REQUIREMENT_LINKS("jira.requirement.links");
 
     private final String name;

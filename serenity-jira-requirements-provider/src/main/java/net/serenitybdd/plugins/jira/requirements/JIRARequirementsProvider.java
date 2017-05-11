@@ -40,6 +40,7 @@ public class JIRARequirementsProvider implements RequirementsTagProvider {
     private final EnvironmentVariables environmentVariables;
 
     private final String EPIC_LINK = "Epic Link";
+    private final String SUBTASK_LINK = "sub-task";
 
     private final org.slf4j.Logger logger = LoggerFactory.getLogger(JIRARequirementsProvider.class);
 
@@ -227,6 +228,8 @@ public class JIRARequirementsProvider implements RequirementsTagProvider {
         String linkType = getRequirementsLinks().get(level);
         if (linkType.equals(EPIC_LINK)) {
             return "'" + getRequirementsLinks().get(level) + "' = " + parent.getCardNumber();
+        }else if(linkType.equals(SUBTASK_LINK)){
+            return "issueFunction in subtasksOf(\"ID = " + parent.getCardNumber() +"\")";
         } else {
             return "issue in linkedIssues(" + parent.getCardNumber() + ",\"" + linkType + "\")";
         }
@@ -239,7 +242,11 @@ public class JIRARequirementsProvider implements RequirementsTagProvider {
 
 
     private String rootRequirementsJQL() {
-        return "issuetype = " + getRootIssueType() + " and project=" + getProjectKey();
+        String suffix = "";
+        if(environmentVariables.getProperty(JIRARequirementsConfiguration.JIRA_ROOT_ISSUE_ADDITIONAL_JQL.getName())!=null){
+            suffix = " AND " + environmentVariables.getProperty(JIRARequirementsConfiguration.JIRA_ROOT_ISSUE_ADDITIONAL_JQL.getName());
+        }
+        return "issuetype = " + getRootIssueType() + " and project=" + getProjectKey() + suffix;
     }
 
     private String getRootIssueType() {

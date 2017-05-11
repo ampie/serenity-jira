@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static ch.lambdaj.Lambda.convert;
@@ -85,19 +86,26 @@ public class JiraUpdater {
             });
             future.addListener(new Runnable() {
                 @Override
-                public void run() {                    logIssueTracking(issue);
+                public void run() {
+                    logIssueTracking(issue);
                     if (!dryRun()) {
-                        updateIssue(issue, resultTally.getTestOutcomesForIssue(issue));
+                        try {
+                            updateIssue(issue, resultTally.getTestOutcomesForIssue(issue));
+                        } catch (Throwable e) {
+                            LOGGER.warn(issue +" could not be updated", e);
+                            e.printStackTrace();
+                        }
                         queueSize.decrementAndGet();
                     }
                 }
             }, MoreExecutors.newDirectExecutorService());
-            future.addListener(new Runnable() {
-                @Override
-                public void run() {
-                    queueSize.decrementAndGet();
-                }
-            }, executorService);
+//HUH??
+//            future.addListener(new Runnable() {
+//                @Override
+//                public void run() {
+//                    queueSize.decrementAndGet();
+//                }
+//            }, executorService);
 
         }
         waitTillUpdatesDone(queueSize);
@@ -145,7 +153,11 @@ public class JiraUpdater {
         LOGGER.info("Found transitions {} for issue {}", transitions, issueId);
 
         for(String transition : transitions) {
-            issueTracker.doTransition(issueId, transition);
+            try {
+                issueTracker.doTransition(issueId, transition);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
     }
 

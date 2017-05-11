@@ -115,7 +115,10 @@ public class JiraIssueTracker implements IssueTracker {
             Optional<IssueSummary> issue = jiraConnection.getRestJiraClient().loadByKey(issueKey);
             if(issue.isPresent()) {
                 String actionId = getAvailableActions(issueKey).get(workflowAction);
-                if (actionId != null) {
+                if (actionId == null) {
+                    logger.error("Action '" + workflowAction + "' not available for " + issueKey + " in state '" +issue.get().getStatus()+ "'. Available actions are:");
+                    logger.error(getAvailableActions(issueKey).toString());
+                }else{
                     jiraConnection.getRestJiraClient().progressWorkflowTransition(issueKey, actionId);
                 }
             } else {
